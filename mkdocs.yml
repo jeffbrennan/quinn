@@ -1,13 +1,10 @@
 site_name: Quinn
 
 theme:
-  name: "readthedocs"
+  name: material
 
 plugins:
   - search
-  - gen-files:
-      scripts:
-        - docs/gen_ref_pages.py
   - section-index
   - mkdocstrings:
       default_handler: python
