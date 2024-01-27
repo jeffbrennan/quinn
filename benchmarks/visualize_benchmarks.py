@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import os
+from datetime import datetime as dt
+from pathlib import Path
+import pytz
+
 import pandas as pd
 import plotly.express as px
 import pyspark.sql.functions as F  # noqa: N812
 from pyspark.sql import SparkSession
 
 
-def parse_results(spark: SparkSession) -> tuple[pd.DataFrame]:
+def parse_results(spark: SparkSession) -> tuple[pd.DataFrame, pd.DataFrame, str]:
     """Parse benchmark results into a Pandas DataFrame."""
     result_df = (
         spark.read.json("benchmarks/results/*.json", multiLine=True)
@@ -33,6 +38,9 @@ def parse_results(spark: SparkSession) -> tuple[pd.DataFrame]:
         .toPandas()
     )
 
+    if not isinstance(result_df, pd.DataFrame):
+        raise TypeError
+
     result_df["dataset_name"] = pd.Categorical(
         result_df["dataset_name"],
         ["xsmall", "small", "medium", "large"],
@@ -45,14 +53,14 @@ def parse_results(spark: SparkSession) -> tuple[pd.DataFrame]:
         .reset_index()
     )
 
-    return result_df, average_df
+    benchmark_date = get_benchmark_date(benchmark_path="benchmarks/results/")
+    return result_df, average_df, benchmark_date
 
 
-def save_boxplot(df: pd.DataFrame) -> None:
+def save_boxplot(df: pd.DataFrame, benchmark_date: str) -> None:
     """Displays faceted boxplot of benchmark results."""
-    today_str = pd.Timestamp.today().strftime("%Y-%m-%d")
     machine_config = "Python 3.12.0, Spark 3.5, Pandas 2.1.3, M1 Macbook Pro 32GB RAM"
-    subtitle = f"<sup>{today_str} | {machine_config}</sup>"
+    subtitle = f"<sup>{benchmark_date} | {machine_config}</sup>"
 
     fig = px.box(
         df,
@@ -70,14 +78,13 @@ def save_boxplot(df: pd.DataFrame) -> None:
     fig.update_xaxes(matches=None, title=None)
     fig.update_layout(legend_title_text="")
 
-    fig.write_image("docs/images/column_to_list_boxplot.svg", width=600, height=300)
+    fig.write_image("docs/images/column_to_list_boxplot.svg", width=950, height=500)
 
 
-def save_line_plot(df: pd.DataFrame) -> None:
+def save_line_plot(df: pd.DataFrame, benchmark_date: str) -> None:
     """Displays line plot of average benchmark results."""
-    today_str = pd.Timestamp.today().strftime("%Y-%m-%d")
     machine_config = "Python 3.12.0, Spark 3.5, Pandas 2.1.3, M1 Macbook Pro 32GB RAM"
-    subtitle = f"<sup>{today_str} | {machine_config}</sup>"
+    subtitle = f"<sup>{benchmark_date} | {machine_config}</sup>"
     fig = px.line(
         df,
         x="dataset_size",
@@ -88,10 +95,20 @@ def save_line_plot(df: pd.DataFrame) -> None:
         labels={"runtime": "Runtime (seconds)", "dataset_size": "Number of Rows"},
     )
     fig.update_traces(mode="markers+lines")
-    fig.update_traces(marker={"size": 15})
+    fig.update_traces(marker={"size": 12})
     fig.update_layout(legend_title_text="")
 
-    fig.write_image("docs/images/column_to_list_line_plot.svg", width=600, height=300)
+    fig.write_image("docs/images/column_to_list_line_plot.svg", width=900, height=450)
+
+
+def get_benchmark_date(benchmark_path: str) -> str:
+    """Returns the date of the benchmark results."""
+    path = Path(benchmark_path)
+    benchmark_ts = path.stat().st_mtime
+    return dt.fromtimestamp(
+        benchmark_ts,
+        tz=pytz.timezone("US/Eastern"),
+    ).strftime("%Y-%m-%d")
 
 
 if __name__ == "__main__":
@@ -103,6 +120,6 @@ if __name__ == "__main__":
         .getOrCreate()
     )
 
-    result_df, average_df = parse_results(spark)
-    save_boxplot(result_df)
-    save_line_plot(average_df)
+    result_df, average_df, benchmark_date = parse_results(spark)
+    save_boxplot(result_df, benchmark_date)
+    save_line_plot(average_df, benchmark_date)
