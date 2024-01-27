@@ -26,23 +26,27 @@ theme:
     - content.tabs.link
 
 plugins:
-  - search
-  - section-index
-  - mkdocstrings:
-      default_handler: python
-      handlers:
-        python:
-          options:
-            docstring_style: sphinx
-            docstring_options:
-              show_if_no_docstring: true
-            show_source: true
-  - mkdocs-jupyter
-  - markdown-exec
+- search
+- section-index
+- gen-files:
+    scripts:
+    - docs/gen_ref_pages.py
+- literate-nav:
+    nav_file: SUMMARY.md
+- mkdocstrings:
+    handlers:
+      python:
+        options:
+          docstring_style: sphinx
+          docstring_options:
+            show_if_no_docstring: true
+          show_source: true
+- markdown-exec
 
 nav:
   - Home: index.md
   - Usage: usage.md
+  - API Reference: reference/SUMMARY.md
   - Learn more: 
     - learn_more/index.md
     - learn_more/column_to_list.md
@@ -53,9 +57,6 @@ markdown_extensions:
   - admonition
   - pymdownx.details
   - attr_list
-  # - pymdownx.emoji:
-  #     emoji_index: !!python/name:material.extensions.emoji.twemoji
-  #     emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
