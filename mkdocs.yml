@@ -6,13 +6,11 @@ repo_name: "MrPowers/quinn"
 theme:
   name: material
   palette:
-# Palette toggle for light mode
   - media: "(prefers-color-scheme: light)"
     scheme: default
     toggle:
       icon: material/brightness-7
       name: Switch to dark mode
-  # Palette toggle for dark mode
   - media: "(prefers-color-scheme: dark)"
     scheme: slate
     toggle:
@@ -27,6 +25,9 @@ theme:
     - navigation.footer
     - navigation.indexes
     - content.tabs.link
+    - content.code.copy
+    - content.code.select
+
 
 plugins:
 - search
@@ -64,7 +65,13 @@ markdown_extensions:
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.snippets:
-      base_path: ['.','docs/src/']
+      base_path: ['.','docs/src/python']
       check_paths: true
       dedent_subsections: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+
   - footnotes
