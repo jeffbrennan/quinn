@@ -48,7 +48,7 @@ def parse_results(spark: SparkSession) -> tuple[pd.DataFrame]:
     return result_df, average_df
 
 
-def show_boxplot(df: pd.DataFrame) -> None:
+def save_boxplot(df: pd.DataFrame) -> None:
     """Displays faceted boxplot of benchmark results."""
     today_str = pd.Timestamp.today().strftime("%Y-%m-%d")
     machine_config = "Python 3.12.0, Spark 3.5, Pandas 2.1.3, M1 Macbook Pro 32GB RAM"
@@ -70,10 +70,10 @@ def show_boxplot(df: pd.DataFrame) -> None:
     fig.update_xaxes(matches=None, title=None)
     fig.update_layout(legend_title_text="")
 
-    fig.show()
+    fig.write_image("docs/images/column_to_list_boxplot.svg", width=600, height=300)
 
 
-def show_line_plot(df: pd.DataFrame) -> None:
+def save_line_plot(df: pd.DataFrame) -> None:
     """Displays line plot of average benchmark results."""
     today_str = pd.Timestamp.today().strftime("%Y-%m-%d")
     machine_config = "Python 3.12.0, Spark 3.5, Pandas 2.1.3, M1 Macbook Pro 32GB RAM"
@@ -91,7 +91,7 @@ def show_line_plot(df: pd.DataFrame) -> None:
     fig.update_traces(marker={"size": 15})
     fig.update_layout(legend_title_text="")
 
-    fig.show()
+    fig.write_image("docs/images/column_to_list_line_plot.svg", width=600, height=300)
 
 
 if __name__ == "__main__":
@@ -104,5 +104,5 @@ if __name__ == "__main__":
     )
 
     result_df, average_df = parse_results(spark)
-    show_boxplot(result_df)
-    show_line_plot(average_df)
+    save_boxplot(result_df)
+    save_line_plot(average_df)
